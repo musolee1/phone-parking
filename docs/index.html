@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>☕ Kafe Masası - Telefon Park</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            overflow: hidden;
+            background: #2c1810;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: white;
+            touch-action: none;
+        }
+
+        h1.game-title {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            border-radius: 4px;
+            overflow: hidden;
+            background: #8b6914;
+        }
+
+        canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            pointer-events: none;
+        }
+
+        .controls-hint {
+            background: rgba(60, 40, 20, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 12px;
+            border: 1px solid rgba(255, 200, 150, 0.3);
+        }
+
+        @media (max-width: 600px) {
+            .controls-hint {
+                display: none;
+            }
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 200, 150, 0.2);
+            color: #fff;
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            font-weight: 500;
+            margin-right: 8px;
+            font-size: 11px;
+            border: 1px solid rgba(255, 200, 150, 0.4);
+        }
+
+        #message-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(30, 20, 10, 0.95);
+            backdrop-filter: blur(10px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        #status-title {
+            font-size: 2rem;
+            margin: 0 0 12px 0;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .success {
+            color: #4ade80;
+        }
+
+        .fail {
+            color: #ff6b6b;
+        }
+
+        #status-desc {
+            font-size: 1rem;
+            margin-bottom: 25px;
+            text-align: center;
+            max-width: 90%;
+            opacity: 0.8;
+            font-weight: 300;
+            line-height: 1.5;
+        }
+
+        #restart-btn {
+            padding: 14px 32px;
+            font-size: 1rem;
+            cursor: pointer;
+            background: linear-gradient(135deg, #c9a227 0%, #d4af37 100%);
+            color: #2c1810;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(201, 162, 39, 0.4);
+        }
+
+        #restart-btn:active {
+            transform: scale(0.98);
+        }
+
+        #mobile-controls {
+            display: none;
+            width: 100%;
+            max-width: 400px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+            #mobile-controls {
+                display: block;
+            }
+        }
+
+        .control-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dpad {
+            display: grid;
+            grid-template-columns: repeat(3, 45px);
+            grid-template-rows: repeat(3, 45px);
+            gap: 3px;
+        }
+
+        .dpad-btn {
+            width: 45px;
+            height: 45px;
+            background: rgba(201, 162, 39, 0.2);
+            border: 1px solid rgba(201, 162, 39, 0.4);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #d4af37;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .dpad-btn:active,
+        .dpad-btn.active {
+            background: rgba(201, 162, 39, 0.5);
+        }
+
+        .pedal-btn {
+            width: 65px;
+            height: 55px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            user-select: none;
+            border: none;
+            margin-bottom: 8px;
+        }
+
+        .pedal-btn.gas {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+        }
+
+        .pedal-btn.brake {
+            background: linear-gradient(135deg, #ff6b6b, #ef4444);
+        }
+
+        .pedal-btn:active,
+        .pedal-btn.active {
+            transform: scale(0.95);
+        }
+
+        #hint-box {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(60, 40, 20, 0.9);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 11px;
+            border: 1px solid rgba(255, 200, 150, 0.3);
+            color: #ffd700;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1 class="game-title">☕ Kafe Masası - Telefon Park</h1>
+
+    <div id="game-container">
+        <canvas id="gameCanvas" width="750" height="450"></canvas>
+
+        <div id="ui-layer">
+            <div class="controls-hint">
+                <div class="control-row"><span class="key">W</span> İleri</div>
+                <div class="control-row"><span class="key">S</span> Geri</div>
+                <div class="control-row"><span class="key">A</span><span class="key">D</span> Yön</div>
+            </div>
+        </div>
+
+        <div id="hint-box">⚠️ Sağ kenarın sarı çizgiye değmeli!</div>
+
+        <div id="message-overlay">
+            <h1 id="status-title">Durum</h1>
+            <p id="status-desc">...</p>
+            <button id="restart-btn" onclick="resetGame()">Tekrar Dene</button>
+        </div>
+    </div>
+
+    <div id="mobile-controls">
+        <div class="control-area">
+            <div class="dpad">
+                <div class="dpad-btn" style="grid-column: 2; grid-row: 1;" id="btn-up">↑</div>
+                <div class="dpad-btn" style="grid-column: 1; grid-row: 2;" id="btn-left">←</div>
+                <div class="dpad-btn" style="grid-column: 3; grid-row: 2;" id="btn-right">→</div>
+                <div class="dpad-btn" style="grid-column: 2; grid-row: 3;" id="btn-down">↓</div>
+            </div>
+            <div style="display: flex; flex-direction: column;">
+                <div class="pedal-btn gas" id="btn-gas">GAZ</div>
+                <div class="pedal-btn brake" id="btn-brake">GERİ</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const overlay = document.getElementById('message-overlay');
+        const statusTitle = document.getElementById('status-title');
+        const statusDesc = document.getElementById('status-desc');
+
+        let gameState = 'playing';
+        let touchedYellowLine = false;
+
+        const keys = { w: false, a: false, s: false, d: false };
+
+        function resizeCanvas() {
+            const maxWidth = Math.min(750, window.innerWidth - 20);
+            const ratio = 450 / 750;
+            canvas.style.width = maxWidth + 'px';
+            canvas.style.height = (maxWidth * ratio) + 'px';
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const phone = {
+            x: 100, y: 350,
+            width: 34, height: 70,
+            angle: 0,
+            speed: 0, targetSpeed: 0,
+            maxSpeed: 2.0, acceleration: 0.03, deceleration: 0.015, friction: 0.99,
+            turnSpeed: 0.02, angularVelocity: 0, angularFriction: 0.94,
+            model: 'iPhone 15 Pro', color: '#0071e3', frameColor: '#005bb5'
+        };
+
+        const cigarettePack = { x: 340, y: 30, width: 55, height: 90, color: '#dc2626', brand: 'MARLBORO' };
+        const lighter = { x: 355, y: 340, width: 25, height: 70, color: '#fbbf24' };
+
+        const otherPhones = [
+            { x: 340, y: 140, width: 34, height: 70, model: 'Samsung S24', color: '#7c3aed', frameColor: '#5b21b6' }
+        ];
+
+        const coffeeCups = [
+            { x: 550, y: 100, radius: 35, color: '#f5f5f5', type: 'latte' },
+            { x: 650, y: 350, radius: 30, color: '#3e2723', type: 'black' },
+            { x: 200, y: 80, radius: 25, color: '#d7ccc8', type: 'espresso' }
+        ];
+
+        const targetSpot = { x: 325, y: 220, w: 65, h: 110 };
+        const yellowLine = { x: targetSpot.x + targetSpot.w - 5, y: targetSpot.y + 10, width: 4, height: targetSpot.h - 20 };
+
+        document.addEventListener('keydown', (e) => { if (keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = true; });
+        document.addEventListener('keyup', (e) => { if (keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = false; });
+
+        function setupMobileControls() {
+            const bind = (id, key) => {
+                const btn = document.getElementById(id);
+                if (!btn) return;
+                const activate = (e) => { e.preventDefault(); keys[key] = true; btn.classList.add('active'); };
+                const deactivate = (e) => { e.preventDefault(); keys[key] = false; btn.classList.remove('active'); };
+                btn.addEventListener('touchstart', activate, { passive: false });
+                btn.addEventListener('touchend', deactivate);
+                btn.addEventListener('mousedown', activate);
+                btn.addEventListener('mouseup', deactivate);
+                btn.addEventListener('mouseleave', deactivate);
+            };
+            bind('btn-up', 'w'); bind('btn-down', 's'); bind('btn-left', 'a'); bind('btn-right', 'd');
+            bind('btn-gas', 'w'); bind('btn-brake', 's');
+        }
+        setupMobileControls();
+
+        function resetGame() {
+            phone.x = 100; phone.y = 350; phone.angle = 0;
+            phone.speed = 0; phone.targetSpeed = 0; phone.angularVelocity = 0;
+            touchedYellowLine = false;
+            gameState = 'playing';
+            overlay.style.display = 'none';
+            requestAnimationFrame(gameLoop);
+        }
+        window.resetGame = resetGame;
+
+        function drawTopDownCup(cup) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.beginPath(); ctx.arc(cup.x + 5, cup.y + 5, cup.radius, 0, Math.PI * 2); ctx.fill();
+
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(cup.x, cup.y, cup.radius, 0, Math.PI * 2); ctx.fill();
+
+            ctx.fillStyle = cup.type === 'black' ? '#3e2723' : (cup.type === 'latte' ? '#d7ccc8' : '#5d4037');
+            ctx.beginPath(); ctx.arc(cup.x, cup.y, cup.radius - 4, 0, Math.PI * 2); ctx.fill();
+
+            if (cup.type === 'latte') {
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(cup.x - 5, cup.y - 5, 10, 0, Math.PI * 2); ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        function drawRectObject(obj, type) {
+            ctx.save();
+            ctx.translate(obj.x + obj.width / 2, obj.y + obj.height / 2);
+
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillRect(-obj.width / 2 + 4, -obj.height / 2 + 4, obj.width, obj.height);
+
+            ctx.fillStyle = obj.color;
+            ctx.fillRect(-obj.width / 2, -obj.height / 2, obj.width, obj.height);
+
+            if (type === 'pack') {
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(-obj.width / 2, -obj.height / 2, obj.width, 20);
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 10px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('M', 0, 5);
+            } else if (type === 'lighter') {
+                ctx.fillStyle = '#ccc';
+                ctx.fillRect(-obj.width / 2, -obj.height / 2, obj.width, 15);
+            }
+            ctx.restore();
+        }
+
+        function drawPhone(p, isPlayer) {
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.angle || 0);
+
+            const w = p.width / 2; const h = p.height / 2;
+
+            ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 10;
+
+            ctx.fillStyle = p.frameColor || '#333';
+            ctx.beginPath(); ctx.roundRect(-w - 1, -h - 1, p.width + 2, p.height + 2, 8); ctx.fill();
+            ctx.shadowBlur = 0;
+
+            ctx.fillStyle = p.color;
+            ctx.beginPath(); ctx.roundRect(-w, -h, p.width, p.height, 7); ctx.fill();
+
+            ctx.fillStyle = '#000';
+            ctx.beginPath(); ctx.roundRect(-w + 4, -h + 4, 12, 12, 4); ctx.fill();
+
+            // Çerçeve kaldırıldı
+            ctx.restore();
+        }
+
+        function drawPlayerPhone() {
+            drawPhone(phone, true);
+        }
+
+        function drawEnvironment() {
+            const grad = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, 500);
+            grad.addColorStop(0, '#8b6914'); grad.addColorStop(1, '#5c4030');
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'rgba(0,0,0,0.05)';
+            for (let i = 0; i < canvas.width; i += 4) ctx.fillRect(i, 0, 1, canvas.height);
+
+            ctx.save();
+            ctx.strokeStyle = '#4ade80'; ctx.lineWidth = 2; ctx.setLineDash([5, 5]);
+            ctx.strokeRect(targetSpot.x, targetSpot.y, targetSpot.w, targetSpot.h);
+            ctx.fillStyle = 'rgba(74, 222, 128, 0.1)';
+            ctx.fillRect(targetSpot.x, targetSpot.y, targetSpot.w, targetSpot.h);
+            ctx.restore();
+
+            ctx.save();
+            ctx.shadowColor = touchedYellowLine ? '#4ade80' : '#ffd700';
+            ctx.shadowBlur = 15;
+            ctx.fillStyle = touchedYellowLine ? '#4ade80' : '#ffd700';
+            ctx.fillRect(yellowLine.x, yellowLine.y, yellowLine.width, yellowLine.height);
+            ctx.restore();
+
+            drawRectObject(cigarettePack, 'pack');
+            drawRectObject(lighter, 'lighter');
+            otherPhones.forEach(p => drawPhone({ x: p.x + p.width / 2, y: p.y + p.height / 2, width: p.width, height: p.height, color: p.color, frameColor: p.frameColor, angle: 0 }, false));
+            coffeeCups.forEach(drawTopDownCup);
+        }
+
+        function updatePhysics() {
+            if (keys.w) phone.targetSpeed = phone.maxSpeed;
+            else if (keys.s) phone.targetSpeed = -phone.maxSpeed / 2;
+            else phone.targetSpeed = 0;
+
+            if (phone.targetSpeed > phone.speed) {
+                phone.speed += phone.acceleration;
+                if (phone.speed > phone.targetSpeed) phone.speed = phone.targetSpeed;
+            } else if (phone.targetSpeed < phone.speed) {
+                phone.speed -= phone.deceleration;
+                if (phone.speed < phone.targetSpeed) phone.speed = phone.targetSpeed;
+            }
+
+            if (!keys.w && !keys.s) phone.speed *= phone.friction;
+            if (Math.abs(phone.speed) < 0.01) phone.speed = 0;
+
+            if (Math.abs(phone.speed) > 0.05) {
+                let turn = (keys.a ? -1 : 0) + (keys.d ? 1 : 0);
+                turn *= Math.sign(phone.speed);
+                phone.angularVelocity += (turn * phone.turnSpeed - phone.angularVelocity) * 0.1;
+            }
+            phone.angularVelocity *= phone.angularFriction;
+            phone.angle += phone.angularVelocity;
+            phone.x += Math.cos(phone.angle - Math.PI / 2) * phone.speed;
+            phone.y += Math.sin(phone.angle - Math.PI / 2) * phone.speed;
+        }
+
+        function getCorners(obj) {
+            const cx = obj.x; const cy = obj.y;
+            const w = obj.width / 2; const h = obj.height / 2;
+            const a = obj.angle || 0;
+            const pts = [{ x: -w, y: -h }, { x: w, y: -h }, { x: w, y: h }, { x: -w, y: h }];
+            return pts.map(p => ({
+                x: cx + (p.x * Math.cos(a) - p.y * Math.sin(a)),
+                y: cy + (p.x * Math.sin(a) + p.y * Math.cos(a))
+            }));
+        }
+
+        function checkCollision() {
+            const pCorners = getCorners(phone);
+
+            const check = (rect, name) => {
+                const dx = phone.x - (rect.x + rect.width / 2);
+                const dy = phone.y - (rect.y + rect.height / 2);
+                if (Math.hypot(dx, dy) > 100) return false;
+
+                for (let p of pCorners) {
+                    if (p.x > rect.x && p.x < rect.x + rect.width && p.y > rect.y && p.y < rect.y + rect.height) return name;
+                }
+                return false;
+            };
+
+            if (check(cigarettePack, 'Sigara Paketi')) return 'Sigara Paketine Çarptın!';
+            if (check(lighter, 'Çakmak')) return 'Çakmağa Çarptın!';
+            for (let op of otherPhones) if (check(op, 'Diğer Telefon')) return 'Diğer Telefona Çarptın!';
+
+            for (let c of coffeeCups) {
+                for (let p of pCorners) {
+                    if (Math.hypot(p.x - c.x, p.y - c.y) < c.radius) return 'Kahveyi Döktün!';
+                }
+            }
+
+            if (phone.x < 0 || phone.x > canvas.width || phone.y < 0 || phone.y > canvas.height) return 'Masadan Düştün!';
+
+            return null;
+        }
+
+        function checkYellowLine() {
+            // Telefonun SAĞ KENARI boyunca sarı çizgiye değip değmediğini kontrol et
+            const pCorners = getCorners(phone);
+            const rightTop = pCorners[1];    // Sağ üst köşe
+            const rightBottom = pCorners[2]; // Sağ alt köşe
+
+            const l = yellowLine;
+
+            // Sağ kenarı boyunca 10 nokta oluştur ve kontrol et
+            const rightEdgePoints = [];
+            for (let i = 0; i <= 10; i++) {
+                const t = i / 10;
+                const px = rightTop.x + (rightBottom.x - rightTop.x) * t;
+                const py = rightTop.y + (rightBottom.y - rightTop.y) * t;
+                rightEdgePoints.push({ x: px, y: py });
+            }
+
+            // Sağ kenardaki herhangi bir nokta sarı çizgiye değiyor mu?
+            touchedYellowLine = false;
+            for (let p of rightEdgePoints) {
+                // Çizgiye 8px yakınlık kontrolü (çizgi genişliği 4px)
+                if (Math.abs(p.x - l.x) < 8 && p.y >= l.y - 5 && p.y <= l.y + l.height + 5) {
+                    touchedYellowLine = true;
+                    break;
+                }
+            }
+        }
+
+        function gameLoop() {
+            if (gameState !== 'playing') return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            updatePhysics();
+            checkYellowLine();
+            drawEnvironment();
+            drawPlayerPhone();
+
+            const col = checkCollision();
+            if (col) {
+                gameState = 'lost';
+                statusTitle.innerText = "KAZA!";
+                statusTitle.className = "fail";
+                statusDesc.innerText = "Ne bileyim daha önce hiç telefon park etmedim 🤷‍♂️";
+                overlay.style.display = 'flex';
+                return;
+            }
+
+            const dist = Math.hypot(phone.x - (targetSpot.x + targetSpot.w / 2), phone.y - (targetSpot.y + targetSpot.h / 2));
+            const angleDiff = Math.abs(phone.angle % (Math.PI * 2));
+            const isStraight = angleDiff < 0.2 || angleDiff > Math.PI * 2 - 0.2;
+
+            if (dist < 20 && Math.abs(phone.speed) < 0.02 && isStraight) {
+                if (touchedYellowLine) {
+                    gameState = 'won';
+                    statusTitle.innerText = "MÜKEMMEL!";
+                    statusTitle.className = "success";
+                    statusDesc.innerText = "Harika park ettin! Sağ kenarı sarı çizgiye mükemmel değdirdin! 📱☕";
+                    overlay.style.display = 'flex';
+                }
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+
+</html>
