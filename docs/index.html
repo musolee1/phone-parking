@@ -150,50 +150,53 @@
             transform: scale(0.98);
         }
 
-        /* Mobil Kontroller - Hem portrait hem landscape */
+        /* Mobil Kontroller - Canvas İçinde */
         #mobile-controls {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
             display: none;
-            width: 100%;
-            max-width: 500px;
-            padding: 10px;
-            margin-top: 10px;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            z-index: 10;
+            pointer-events: auto;
         }
 
         @media (max-width: 900px),
         (max-height: 600px) {
             #mobile-controls {
                 display: flex;
-                justify-content: center;
-                align-items: center;
-                gap: 15px;
             }
         }
 
         .direction-controls {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             align-items: center;
         }
 
         .arrow-btn {
-            width: 60px;
-            height: 60px;
-            background: rgba(201, 162, 39, 0.3);
-            border: 2px solid rgba(201, 162, 39, 0.6);
+            width: 65px;
+            height: 65px;
+            background: rgba(60, 40, 20, 0.85);
+            border: 2px solid rgba(201, 162, 39, 0.7);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 26px;
             color: #d4af37;
             cursor: pointer;
             user-select: none;
             font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
         .arrow-btn:active,
         .arrow-btn.active {
-            background: rgba(201, 162, 39, 0.6);
+            background: rgba(201, 162, 39, 0.7);
             transform: scale(0.95);
         }
 
@@ -204,18 +207,19 @@
         }
 
         .pedal-btn {
-            width: 70px;
+            width: 75px;
             height: 60px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 700;
             color: white;
             cursor: pointer;
             user-select: none;
             border: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
         .pedal-btn.gas {
@@ -229,13 +233,14 @@
         .pedal-btn:active,
         .pedal-btn.active {
             transform: scale(0.95);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
 
         #hint-box {
             position: absolute;
-            bottom: 10px;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translate(-50%, -50%);
             background: rgba(60, 40, 20, 0.9);
             padding: 8px 16px;
             border-radius: 8px;
@@ -243,6 +248,16 @@
             border: 1px solid rgba(255, 200, 150, 0.3);
             color: #ffd700;
             text-align: center;
+            pointer-events: none;
+        }
+
+        @media (max-width: 900px),
+        (max-height: 600px) {
+            #hint-box {
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+            }
         }
     </style>
 </head>
@@ -264,22 +279,22 @@
 
         <div id="hint-box">⚠️ Sağ kenarın sarı çizgiye değmeli!</div>
 
+        <!-- Mobil Kontroller - Canvas İçinde -->
+        <div id="mobile-controls">
+            <div class="direction-controls">
+                <div class="arrow-btn" id="btn-left">←</div>
+                <div class="arrow-btn" id="btn-right">→</div>
+            </div>
+            <div class="speed-controls">
+                <div class="pedal-btn gas" id="btn-gas">İLERİ</div>
+                <div class="pedal-btn brake" id="btn-brake">GERİ</div>
+            </div>
+        </div>
+
         <div id="message-overlay">
             <h1 id="status-title">Durum</h1>
             <p id="status-desc">...</p>
             <button id="restart-btn" onclick="resetGame()">Tekrar Dene</button>
-        </div>
-    </div>
-
-    <!-- Mobil Kontroller - Sadece Sağ/Sol + Gaz/Geri -->
-    <div id="mobile-controls">
-        <div class="direction-controls">
-            <div class="arrow-btn" id="btn-left">←</div>
-            <div class="arrow-btn" id="btn-right">→</div>
-        </div>
-        <div class="speed-controls">
-            <div class="pedal-btn gas" id="btn-gas">İLERİ</div>
-            <div class="pedal-btn brake" id="btn-brake">GERİ</div>
         </div>
     </div>
 
@@ -339,11 +354,13 @@
                 if (!btn) return;
                 const activate = (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     keys[key] = true;
                     btn.classList.add('active');
                 };
                 const deactivate = (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     keys[key] = false;
                     btn.classList.remove('active');
                 };
@@ -355,7 +372,6 @@
                 btn.addEventListener('mouseleave', deactivate);
             };
 
-            // Sadece sağ/sol ok tuşları + gaz/geri
             bind('btn-left', 'a');
             bind('btn-right', 'd');
             bind('btn-gas', 'w');
