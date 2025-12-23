@@ -150,18 +150,19 @@
             transform: scale(0.98);
         }
 
-        /* Mobil Kontroller - Canvas İçinde */
+        /* Mobil Kontroller - Sol: Direksiyon, Sağ: Gaz/Geri */
         #mobile-controls {
             position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 140px;
             display: none;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            gap: 20px;
+            padding: 0 20px 20px 20px;
             z-index: 10;
-            pointer-events: auto;
+            pointer-events: none;
         }
 
         @media (max-width: 900px),
@@ -171,55 +172,98 @@
             }
         }
 
-        .direction-controls {
-            display: flex;
-            gap: 12px;
-            align-items: center;
+        /* Direksiyon - Sol taraf */
+        #steering-wheel {
+            width: 110px;
+            height: 110px;
+            position: relative;
+            pointer-events: auto;
         }
 
-        .arrow-btn {
-            width: 65px;
-            height: 65px;
-            background: rgba(60, 40, 20, 0.85);
-            border: 2px solid rgba(201, 162, 39, 0.7);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 26px;
-            color: #d4af37;
-            cursor: pointer;
-            user-select: none;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        .steering-outer {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(80, 60, 40, 0.9), rgba(40, 30, 20, 0.95));
+            border: 3px solid rgba(201, 162, 39, 0.6);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 2px 5px rgba(255, 255, 255, 0.1);
+            position: relative;
+            touch-action: none;
         }
 
-        .arrow-btn:active,
-        .arrow-btn.active {
-            background: rgba(201, 162, 39, 0.7);
-            transform: scale(0.95);
+        .steering-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 70px;
+            height: 70px;
+            margin-left: -35px;
+            margin-top: -35px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(60, 45, 30, 0.9), rgba(30, 20, 15, 0.95));
+            border: 2px solid rgba(201, 162, 39, 0.4);
         }
 
+        .steering-grip {
+            position: absolute;
+            width: 8px;
+            height: 40px;
+            background: linear-gradient(to right, rgba(201, 162, 39, 0.8), rgba(201, 162, 39, 0.5));
+            border-radius: 4px;
+            top: 5px;
+            left: 50%;
+            margin-left: -4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .steering-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin-left: -10px;
+            margin-top: -10px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #c9a227, #d4af37);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Gaz/Geri Butonları - Sağ taraf */
         .speed-controls {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
+            pointer-events: auto;
         }
 
         .pedal-btn {
-            width: 75px;
-            height: 60px;
-            border-radius: 12px;
+            width: 80px;
+            height: 65px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 700;
             color: white;
             cursor: pointer;
             user-select: none;
             border: none;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pedal-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent);
+            pointer-events: none;
         }
 
         .pedal-btn.gas {
@@ -233,7 +277,18 @@
         .pedal-btn:active,
         .pedal-btn.active {
             transform: scale(0.95);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        .pedal-btn .icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .pedal-btn .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         #hint-box {
@@ -254,7 +309,7 @@
         @media (max-width: 900px),
         (max-height: 600px) {
             #hint-box {
-                top: 10px;
+                top: 15px;
                 left: 50%;
                 transform: translateX(-50%);
             }
@@ -279,15 +334,31 @@
 
         <div id="hint-box">⚠️ Sağ kenarın sarı çizgiye değmeli!</div>
 
-        <!-- Mobil Kontroller - Canvas İçinde -->
+        <!-- Mobil Kontroller -->
         <div id="mobile-controls">
-            <div class="direction-controls">
-                <div class="arrow-btn" id="btn-left">←</div>
-                <div class="arrow-btn" id="btn-right">→</div>
+            <!-- Sol: Direksiyon -->
+            <div id="steering-wheel">
+                <div class="steering-outer">
+                    <div class="steering-grip"></div>
+                    <div class="steering-inner"></div>
+                    <div class="steering-center"></div>
+                </div>
             </div>
+
+            <!-- Sağ: Gaz ve Geri -->
             <div class="speed-controls">
-                <div class="pedal-btn gas" id="btn-gas">İLERİ</div>
-                <div class="pedal-btn brake" id="btn-brake">GERİ</div>
+                <div class="pedal-btn gas" id="btn-gas">
+                    <div style="text-align: center;">
+                        <div class="icon">↑</div>
+                        <div class="label">İleri</div>
+                    </div>
+                </div>
+                <div class="pedal-btn brake" id="btn-brake">
+                    <div style="text-align: center;">
+                        <div class="icon">↓</div>
+                        <div class="label">Geri</div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -348,10 +419,90 @@
         document.addEventListener('keydown', (e) => { if (keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = true; });
         document.addEventListener('keyup', (e) => { if (keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = false; });
 
-        function setupMobileControls() {
+        // Direksiyon Kontrolü
+        let steeringAngle = 0;
+        let steeringActive = false;
+
+        function setupSteeringWheel() {
+            const wheel = document.querySelector('.steering-outer');
+            const grip = document.querySelector('.steering-grip');
+
+            function updateSteering(clientX, clientY) {
+                const rect = wheel.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+
+                const dx = clientX - centerX;
+                const dy = clientY - centerY;
+
+                // Açıyı hesapla (radyan)
+                let angle = Math.atan2(dy, dx);
+                steeringAngle = angle;
+
+                // Görsel güncelleme
+                const degrees = (angle * 180 / Math.PI) + 90;
+                grip.style.transform = `rotate(${degrees}deg)`;
+
+                // Direksiyon açısına göre A/D tuşlarını kontrol et
+                // -45 ile +45 derece arası = nötr
+                // -45'ten küçük = sola dön (A)
+                // +45'ten büyük = sağa dön (D)
+                const deadZone = Math.PI / 4; // 45 derece
+
+                if (angle < -deadZone) {
+                    keys.a = true;
+                    keys.d = false;
+                } else if (angle > deadZone) {
+                    keys.d = true;
+                    keys.a = false;
+                } else {
+                    keys.a = false;
+                    keys.d = false;
+                }
+            }
+
+            function handleStart(e) {
+                e.preventDefault();
+                steeringActive = true;
+                const touch = e.touches ? e.touches[0] : e;
+                updateSteering(touch.clientX, touch.clientY);
+            }
+
+            function handleMove(e) {
+                if (!steeringActive) return;
+                e.preventDefault();
+                const touch = e.touches ? e.touches[0] : e;
+                updateSteering(touch.clientX, touch.clientY);
+            }
+
+            function handleEnd(e) {
+                e.preventDefault();
+                steeringActive = false;
+                keys.a = false;
+                keys.d = false;
+
+                // Direksiyonu merkeze döndür
+                const grip = document.querySelector('.steering-grip');
+                grip.style.transform = 'rotate(0deg)';
+                steeringAngle = 0;
+            }
+
+            wheel.addEventListener('touchstart', handleStart, { passive: false });
+            wheel.addEventListener('touchmove', handleMove, { passive: false });
+            wheel.addEventListener('touchend', handleEnd, { passive: false });
+            wheel.addEventListener('touchcancel', handleEnd, { passive: false });
+
+            wheel.addEventListener('mousedown', handleStart);
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('mouseup', handleEnd);
+        }
+
+        // Gaz/Geri Butonları
+        function setupPedals() {
             const bind = (id, key) => {
                 const btn = document.getElementById(id);
                 if (!btn) return;
+
                 const activate = (e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -364,6 +515,7 @@
                     keys[key] = false;
                     btn.classList.remove('active');
                 };
+
                 btn.addEventListener('touchstart', activate, { passive: false });
                 btn.addEventListener('touchend', deactivate, { passive: false });
                 btn.addEventListener('touchcancel', deactivate);
@@ -372,12 +524,12 @@
                 btn.addEventListener('mouseleave', deactivate);
             };
 
-            bind('btn-left', 'a');
-            bind('btn-right', 'd');
             bind('btn-gas', 'w');
             bind('btn-brake', 's');
         }
-        setupMobileControls();
+
+        setupSteeringWheel();
+        setupPedals();
 
         function resetGame() {
             phone.x = 100; phone.y = 350; phone.angle = 0;
