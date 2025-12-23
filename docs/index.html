@@ -64,7 +64,8 @@
             border: 1px solid rgba(255, 200, 150, 0.3);
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 900px),
+        (max-height: 600px) {
             .controls-hint {
                 display: none;
             }
@@ -149,67 +150,72 @@
             transform: scale(0.98);
         }
 
+        /* Mobil Kontroller - Hem portrait hem landscape */
         #mobile-controls {
             display: none;
             width: 100%;
-            max-width: 400px;
-            padding: 15px;
+            max-width: 500px;
+            padding: 10px;
             margin-top: 10px;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 900px),
+        (max-height: 600px) {
             #mobile-controls {
-                display: block;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 15px;
             }
         }
 
-        .control-area {
+        .direction-controls {
             display: flex;
-            justify-content: space-between;
+            gap: 10px;
             align-items: center;
         }
 
-        .dpad {
-            display: grid;
-            grid-template-columns: repeat(3, 45px);
-            grid-template-rows: repeat(3, 45px);
-            gap: 3px;
-        }
-
-        .dpad-btn {
-            width: 45px;
-            height: 45px;
-            background: rgba(201, 162, 39, 0.2);
-            border: 1px solid rgba(201, 162, 39, 0.4);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            color: #d4af37;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .dpad-btn:active,
-        .dpad-btn.active {
-            background: rgba(201, 162, 39, 0.5);
-        }
-
-        .pedal-btn {
-            width: 65px;
-            height: 55px;
+        .arrow-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(201, 162, 39, 0.3);
+            border: 2px solid rgba(201, 162, 39, 0.6);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 13px;
+            font-size: 24px;
+            color: #d4af37;
+            cursor: pointer;
+            user-select: none;
+            font-weight: bold;
+        }
+
+        .arrow-btn:active,
+        .arrow-btn.active {
+            background: rgba(201, 162, 39, 0.6);
+            transform: scale(0.95);
+        }
+
+        .speed-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .pedal-btn {
+            width: 70px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
             font-weight: 600;
             color: white;
             cursor: pointer;
             user-select: none;
             border: none;
-            margin-bottom: 8px;
         }
 
         .pedal-btn.gas {
@@ -265,18 +271,15 @@
         </div>
     </div>
 
+    <!-- Mobil Kontroller - Sadece Sağ/Sol + Gaz/Geri -->
     <div id="mobile-controls">
-        <div class="control-area">
-            <div class="dpad">
-                <div class="dpad-btn" style="grid-column: 2; grid-row: 1;" id="btn-up">↑</div>
-                <div class="dpad-btn" style="grid-column: 1; grid-row: 2;" id="btn-left">←</div>
-                <div class="dpad-btn" style="grid-column: 3; grid-row: 2;" id="btn-right">→</div>
-                <div class="dpad-btn" style="grid-column: 2; grid-row: 3;" id="btn-down">↓</div>
-            </div>
-            <div style="display: flex; flex-direction: column;">
-                <div class="pedal-btn gas" id="btn-gas">GAZ</div>
-                <div class="pedal-btn brake" id="btn-brake">GERİ</div>
-            </div>
+        <div class="direction-controls">
+            <div class="arrow-btn" id="btn-left">←</div>
+            <div class="arrow-btn" id="btn-right">→</div>
+        </div>
+        <div class="speed-controls">
+            <div class="pedal-btn gas" id="btn-gas">İLERİ</div>
+            <div class="pedal-btn brake" id="btn-brake">GERİ</div>
         </div>
     </div>
 
@@ -334,16 +337,29 @@
             const bind = (id, key) => {
                 const btn = document.getElementById(id);
                 if (!btn) return;
-                const activate = (e) => { e.preventDefault(); keys[key] = true; btn.classList.add('active'); };
-                const deactivate = (e) => { e.preventDefault(); keys[key] = false; btn.classList.remove('active'); };
+                const activate = (e) => {
+                    e.preventDefault();
+                    keys[key] = true;
+                    btn.classList.add('active');
+                };
+                const deactivate = (e) => {
+                    e.preventDefault();
+                    keys[key] = false;
+                    btn.classList.remove('active');
+                };
                 btn.addEventListener('touchstart', activate, { passive: false });
-                btn.addEventListener('touchend', deactivate);
+                btn.addEventListener('touchend', deactivate, { passive: false });
+                btn.addEventListener('touchcancel', deactivate);
                 btn.addEventListener('mousedown', activate);
                 btn.addEventListener('mouseup', deactivate);
                 btn.addEventListener('mouseleave', deactivate);
             };
-            bind('btn-up', 'w'); bind('btn-down', 's'); bind('btn-left', 'a'); bind('btn-right', 'd');
-            bind('btn-gas', 'w'); bind('btn-brake', 's');
+
+            // Sadece sağ/sol ok tuşları + gaz/geri
+            bind('btn-left', 'a');
+            bind('btn-right', 'd');
+            bind('btn-gas', 'w');
+            bind('btn-brake', 's');
         }
         setupMobileControls();
 
@@ -418,7 +434,6 @@
             ctx.fillStyle = '#000';
             ctx.beginPath(); ctx.roundRect(-w + 4, -h + 4, 12, 12, 4); ctx.fill();
 
-            // Çerçeve kaldırıldı
             ctx.restore();
         }
 
@@ -522,14 +537,12 @@
         }
 
         function checkYellowLine() {
-            // Telefonun SAĞ KENARI boyunca sarı çizgiye değip değmediğini kontrol et
             const pCorners = getCorners(phone);
-            const rightTop = pCorners[1];    // Sağ üst köşe
-            const rightBottom = pCorners[2]; // Sağ alt köşe
+            const rightTop = pCorners[1];
+            const rightBottom = pCorners[2];
 
             const l = yellowLine;
 
-            // Sağ kenarı boyunca 10 nokta oluştur ve kontrol et
             const rightEdgePoints = [];
             for (let i = 0; i <= 10; i++) {
                 const t = i / 10;
@@ -538,10 +551,8 @@
                 rightEdgePoints.push({ x: px, y: py });
             }
 
-            // Sağ kenardaki herhangi bir nokta sarı çizgiye değiyor mu?
             touchedYellowLine = false;
             for (let p of rightEdgePoints) {
-                // Çizgiye 8px yakınlık kontrolü (çizgi genişliği 4px)
                 if (Math.abs(p.x - l.x) < 8 && p.y >= l.y - 5 && p.y <= l.y + l.height + 5) {
                     touchedYellowLine = true;
                     break;
